@@ -11,7 +11,8 @@ readonly class ContactDTO
         public string $email,
         public string $subject,
         public string $message,
-        public array $metadata = []
+        public array $metadata = [],
+        
     ){}
 
     public static function fromRequest(Request $request): self
@@ -20,6 +21,7 @@ readonly class ContactDTO
             name: $request->validated('name'),
             email: $request->validated('email'),
             subject: $request->validated('subject'),
+            message: $request->validated('message'),
             metadata: [
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
