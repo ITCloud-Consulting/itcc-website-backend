@@ -1,0 +1,35 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ staging ]
+    paths: ['itcc-website-backend/**']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to Staging VPS
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+          cd /home/apps/staging/itcc-website-backend
+          
+          # Pull du code
+          git pull origin staging || git clone https://github.com/ITCloud-Consulting/itcc-website-backend.git .
+          
+          # Arrêt du container existant
+          docker-compose down || true
+          
+          # Construction et démarrage
+          docker-compose up -d --build
+          
+          # Nettoyage des images inutilisées
+          docker image prune -f
