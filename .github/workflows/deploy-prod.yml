@@ -55,7 +55,7 @@ jobs:
 
             # Créer le fichier .env si il n'existe pas
             if [ ! -f .env ]; then
-              cat > .env << 'EOL'
+cat > .env << 'EOL'
 APP_NAME=Laravel
 APP_ENV=production
 APP_KEY=${{ secrets.ITCC_API_APP_KEY }}
@@ -120,8 +120,9 @@ AWS_USE_PATH_STYLE_ENDPOINT=
 
 VITE_APP_NAME="${APP_NAME}"
 EOL
-  fi
-            # Docker build et migrations comme avant
+            fi
+
+            # Docker build et migrations
             docker-compose down || true
             docker system prune -f || true
             docker-compose up -d --build
