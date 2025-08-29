@@ -39,54 +39,54 @@ services:
       - itcc-network
 
   # MySQL Service
-  # db:
-  #   image: mysql:8.0
-  #   container_name: itcc-db
-  #   platform: linux/amd64
-  #   restart: unless-stopped
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     MYSQL_DATABASE: ${DB_DATABASE}    # Base de données
-  #     MYSQL_ROOT_PASSWORD: ${DB_PASSWORD} # Root password
-  #     MYSQL_USER: ${DB_USERNAME}        # DB user
-  #     MYSQL_PASSWORD: ${DB_PASSWORD}    # DB password
-  #   volumes:
-  #     - dbdata:/var/lib/mysql
-  #   ports:
-  #     - "3306:3306"
-  #   networks:
-  #     - itcc-network
-  #   healthcheck:
-  #     test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
-  #     interval: 1m
-  #     timeout: 30s
-  #     retries: 5
+  db:
+    image: mysql:8.0
+    container_name: itcc-db
+    platform: linux/amd64
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}    # Base de données
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD} # Root password
+      MYSQL_USER: ${DB_USERNAME}        # DB user
+      MYSQL_PASSWORD: ${DB_PASSWORD}    # DB password
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - itcc-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
+      interval: 1m
+      timeout: 30s
+      retries: 5
 
   # PHPMyAdmin
-  # phpmyadmin:
-  #   image: phpmyadmin:latest
-  #   platform: linux/amd64
-  #   container_name: itcc-pma
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     PMA_HOST: ${DB_HOST:-db}
-  #     PMA_PORT: ${DB_PORT:-3306}
-  #     PMA_USER: ${DB_USERNAME:-root}
-  #     PMA_PASSWORD: ${DB_PASSWORD:-root}
-  #     UPLOAD_LIMIT: 100M
-  #     UPLOAD_MAX_SIZE: 100M
-  #     MEMORY_LIMIT: 512M
-  #     MAX_EXECUTION_TIME: 300
-  #   restart: always
-  #   ports:
-  #     - "8080:80"
-  #   networks:
-  #     - itcc-network
+  phpmyadmin:
+    image: phpmyadmin:latest
+    platform: linux/amd64
+    container_name: itcc-pma
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      PMA_HOST: ${DB_HOST:-db}
+      PMA_PORT: ${DB_PORT:-3306}
+      PMA_USER: ${DB_USERNAME:-root}
+      PMA_PASSWORD: ${DB_PASSWORD:-root}
+      UPLOAD_LIMIT: 100M
+      UPLOAD_MAX_SIZE: 100M
+      MEMORY_LIMIT: 512M
+      MAX_EXECUTION_TIME: 300
+    restart: always
+    ports:
+      - "8080:80"
+    networks:
+      - itcc-network
 
 # Docker Networks
 networks:
