@@ -6,35 +6,25 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: company-app
+    container_name: itcc-website
     restart: unless-stopped
     working_dir: /var/www
     volumes:
       - ./:/var/www
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/app.ini
-    environment:
-      - APP_ENV=local
-      - APP_DEBUG=true
-      - APP_KEY=${APP_KEY}
-      - APP_URL=http://localhost:8000
-      - DB_CONNECTION=mysql
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_DATABASE=${DB_DATABASE:-company}
-      - DB_USERNAME=${DB_USERNAME:-company}
-      - DB_PASSWORD=${DB_PASSWORD:-secret}
+    env_file:
+      - .env  # <-- Toutes les variables seront lues depuis le .env
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - company-network
-    command: >
-      sh -c "php-fpm"
+      - itcc-network
+    command: sh -c "php-fpm"
 
   # Nginx Service
   webserver:
     image: nginx:alpine
-    container_name: company-webserver
+    container_name: itcc-webserver
     restart: unless-stopped
     ports:
       - "8000:80"
@@ -44,45 +34,48 @@ services:
     depends_on:
       - app
     networks:
-      - company-network
+      - itcc-network
 
   # MySQL Service
   db:
     image: mysql:8.0
-    container_name: company-db
+    container_name: itcc-db
     platform: linux/amd64
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      MYSQL_DATABASE: company_db  # Database name
-      MYSQL_ROOT_PASSWORD: root  # Root password
-      MYSQL_PASSWORD: root  # User password
-      MYSQL_USER: root  # Database user
+      MYSQL_DATABASE: ${DB_DATABASE}    # Base de données
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD} # Root password
+      MYSQL_USER: ${DB_USERNAME}        # DB user
+      MYSQL_PASSWORD: ${DB_PASSWORD}    # DB password
     volumes:
-      - dbdata:/var/lib/mysql  # Persist database data
+      - dbdata:/var/lib/mysql
     ports:
-      - "3306:3306"  # Map MySQL port
+      - "3306:3306"
     networks:
-      - company-network
+      - itcc-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
       interval: 1m
       timeout: 30s
       retries: 5
-
 
   # PHPMyAdmin
   phpmyadmin:
     image: phpmyadmin:latest
     platform: linux/amd64
-    container_name: company-pma
+    container_name: itcc-pma
     depends_on:
       db:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
-      PMA_HOST: db
-      PMA_PORT: 3306
-      PMA_USER: root
-      PMA_PASSWORD: root
+      PMA_HOST: ${DB_HOST:-db}
+      PMA_PORT: ${DB_PORT:-3306}
+      PMA_USER: ${DB_USERNAME:-root}
+      PMA_PASSWORD: ${DB_PASSWORD:-root}
       UPLOAD_LIMIT: 100M
       UPLOAD_MAX_SIZE: 100M
       MEMORY_LIMIT: 512M
@@ -91,12 +84,11 @@ services:
     ports:
       - "8080:80"
     networks:
-      - company-network
-  #redisimageName
-  
+      - itcc-network
+
 # Docker Networks
 networks:
-  company-network:
+  itcc-network:
     driver: bridge
 
 # Volumes
