@@ -55,7 +55,7 @@ jobs:
 
             # Créer le fichier .env si il n'existe pas
             if [ ! -f .env ]; then
-cat > .env << 'EOL'
+              cat > .env << 'EOL'
 APP_NAME=Laravel
 APP_ENV=production
 APP_KEY=${{ secrets.ITCC_API_APP_KEY }}
