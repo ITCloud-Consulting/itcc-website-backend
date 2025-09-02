@@ -1,102 +1,45 @@
-FROM php:8.3-fpm
+# Étape 1 : Build (Composer & Artisan)
+FROM php:8.2-fpm-alpine AS builder
 
-# Set working directory
+# Installer dépendances système
+RUN apk add --no-cache \
+    git unzip libpng-dev libjpeg-turbo-dev freetype-dev icu-dev oniguruma-dev bash mariadb-client
+
+# Installer extensions PHP nécessaires à Laravel
+RUN docker-php-ext-install pdo pdo_mysql intl mbstring gd exif pcntl bcmath opcache
+
+# Installer Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
 WORKDIR /var/www
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    libonig-dev \
-    libxml2-dev \
-    libzip-dev \
-    libicu-dev \
-    libpq-dev \
-    libwebp-dev \
-    libjpeg62-turbo \
-    libfreetype6 \
-    libpng16-16 \
-    libxpm4 \
-    libwebpdemux2 \
-    libwebpmux3 \
-    # libzip4 \
-    zlib1g-dev \
-    zip \
-    unzip \
-    procps \
-    supervisor \
-    cron \
-    nano \
-    libvpx-dev \
-    libwebp7 \
-    && rm -rf /var/lib/apt/lists/*
+# Copier fichiers du projet
+COPY . .
 
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install -j$(nproc) \
-        pdo_mysql \
-        mbstring \
-        exif \
-        pcntl \
-        bcmath \
-        gd \
-        zip \
-        intl \
-        opcache \
-        sockets \
-        soap \
-    && docker-php-ext-enable opcache
+# Installer les dépendances PHP sans dev et optimiser
+RUN composer install --no-dev --optimize-autoloader && \
+    composer dump-autoload --optimize
 
-# Install Redis extension
-RUN pecl install -o -f redis \
-    && rm -rf /tmp/pear \
-    && docker-php-ext-enable redis
+# Générer caches Laravel
+RUN php artisan config:clear && \
+    php artisan view:clear && \
+    php artisan route:clear
 
-# Configure PHP
-RUN { \
-    echo 'memory_limit = 512M'; \
-    echo 'upload_max_filesize = 128M'; \
-    echo 'post_max_size = 128M'; \
-    echo 'max_execution_time = 300'; \
-    echo 'max_input_time = 300'; \
-    echo 'date.timezone = UTC'; \
-    echo 'opcache.enable=1'; \
-    echo 'opcache.memory_consumption=128'; \
-    echo 'opcache.interned_strings_buffer=8'; \
-    echo 'opcache.max_accelerated_files=4000'; \
-    echo 'opcache.revalidate_freq=60'; \
-    echo 'opcache.fast_shutdown=1'; \
-    echo 'opcache.enable_cli=1'; \
-    echo 'opcache.max_wasted_percentage=10'; \
-} > /usr/local/etc/php/conf.d/app.ini \
-    && docker-php-source delete
+# Étape 2 : Runtime (léger)
+FROM php:8.2-fpm-alpine AS runtime
 
-# Enable proc_open and other required functions
-RUN { \
-    echo 'disable_functions='; \
-    echo 'allow_url_fopen=On'; \
-    echo 'allow_url_include=Off'; \
-} >> /usr/local/etc/php/conf.d/docker-php-ext-custom.ini
+# Installer extensions PHP (mêmes que ci-dessus)
+RUN apk add --no-cache \
+    libpng libjpeg-turbo freetype icu oniguruma bash mariadb-client \
+    && docker-php-ext-install pdo pdo_mysql intl mbstring gd bcmath opcache
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+WORKDIR /var/www
 
-# Add user for laravel application
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+# Copier uniquement le nécessaire depuis builder
+COPY --from=builder /var/www /var/www
 
-# Copy existing application directory contents
-COPY . /var/www
+# Fixer permissions
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# Copy existing application directory permissions
-COPY --chown=www:www . /var/www
-
-# Change current user to www
-USER www
-
-# Expose port 9000 and start php-fpm server
-EXPOSE 9000
 CMD ["php-fpm"]

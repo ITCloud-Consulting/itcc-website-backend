@@ -1,0 +1,35 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ "prod" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy with Docker Compose
+        run: |
+          APP_KEY=${{ secrets.ITCC_API_APP_KEY }} \
+          APP_URL=${{ secrets.ITCC_API_APP_URL }} \
+          DB_HOST=${{ secrets.ITCC_API_DB_HOST }} \
+          DB_PORT=${{ secrets.ITCC_API_DB_PORT }} \
+          DB_DATABASE=${{ secrets.ITCC_API_DB_DATABASE }} \
+          DB_USERNAME=${{ secrets.ITCC_API_DB_USERNAME }} \
+          DB_PASSWORD=${{ secrets.ITCC_API_DB_PASSWORD }} \
+          REDIS_HOST=${{ secrets.ITCC_API_REDIS_HOST }} \
+          REDIS_PASSWORD=${{ secrets.ITCC_API_REDIS_PASSWORD }} \
+          REDIS_PORT=${{ secrets.ITCC_API_REDIS_PORT }} \
+          MAIL_HOST=${{ secrets.ITCC_API_MAIL_HOST }} \
+          MAIL_PORT=${{ secrets.ITCC_API_MAIL_PORT }} \
+          MAIL_USERNAME=${{ secrets.ITCC_API_MAIL_USERNAME }} \
+          MAIL_PASSWORD=${{ secrets.ITCC_API_MAIL_PASSWORD }} \
+          MAIL_ENCRYPTION=${{ secrets.ITCC_API_MAIL_ENCRYPTION }} \
+          MAIL_FROM_ADDRESS=${{ secrets.ITCC_API_MAIL_FROM_ADDRESS }} \
+          MAIL_FROM_NAME=${{ secrets.ITCC_API_MAIL_FROM_NAME }} \
+          ADMIN_EMAIL=${{ secrets.ITCC_API_ADMIN_EMAIL }} \
+          make up-prod
