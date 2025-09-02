@@ -8,6 +8,9 @@ use App\Http\Requests\StoreContactRequest;
 use App\Services\ContactService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ContactAutoReply;
+use App\Mail\ContactNotification;
 
 class ContactController extends Controller
 {
@@ -23,6 +26,11 @@ class ContactController extends Controller
             $contactDTO = ContactDTO::fromRequest($request);
             $contact = $this->contactService->createContact($contactDTO);
 
+            // Send autoreply
+            // Mail::to($contact->email)->queue(new ContactAutoReply($contact));
+
+            // // send mail to support@itcloudconsultings.com
+            // Mail::to('support@itcloudconsultings.com')->queue(new ContactNotification($contact));
             return response()->json([
                 'success' => true,
                 'message' => 'Votre message a été envoyé avec succès. Nous vous répondrons bientôt!',
@@ -66,10 +74,10 @@ class ContactController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+    // public function update(Request $request, string $id)
+    // {
+    //     //
+    // }
 
     /**
      * Remove the specified resource from storage.

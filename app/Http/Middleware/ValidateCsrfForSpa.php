@@ -21,6 +21,9 @@ class ValidateCsrfForSpa
             'http://localhost:8000',
             'http://127.0.0.1:3000',
             'http://127.0.0.1:8000',
+            'https://itcloudconsultings.com',
+            'http://192.168.65.1:3000',
+            'http://192.168.65.1:8000',
         ];
 
         $origin = $request->header('origin');

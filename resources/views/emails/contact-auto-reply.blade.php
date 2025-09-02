@@ -11,5 +11,5 @@ Notre équipe vous répondra dans les plus brefs délais.
 Si vous avez des questions urgentes, n'hésitez pas à nous contacter directement.
 
 Cordialement,<br>
-L'équipe {{ config('app.name') }}
+L'équipe {{ config('app.name', '') }}
 @endcomponent

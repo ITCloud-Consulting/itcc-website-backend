@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'smpt'),
+    'default' => env('MAIL_MAILER', 'log'),
 
     /*
     |--------------------------------------------------------------------------
@@ -42,11 +42,11 @@ return [
             'scheme' => env('MAIL_SCHEME'),
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
-            'port' => env('MAIL_PORT', 587),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
+            'port' => env('MAIL_PORT', 465),
+            'username' => env('MAIL_USERNAME', 'support@itcloudconsultings.com'),
+            'password' => env('MAIL_PASSWORD', 'Jesussavior!22@'),
             'timeout' => null,
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            'encryption' => env('MAIL_ENCRYPTION', 'ssl'),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
@@ -111,7 +111,7 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'support@itcloudconsultings.com'),
-        'name' => env('MAIL_FROM_NAME', 'ITCloud Consulting'),
+        'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
 ];
