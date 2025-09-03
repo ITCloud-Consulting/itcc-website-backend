@@ -1,0 +1,126 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: ["prod"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2️⃣ Setup SSH key
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      # 3️⃣ Test SSH connection
+      - name: Test SSH connection
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH connection successful'"
+
+      # 4️⃣ Sync project files to VPS
+      - name: Sync files to server
+        run: |
+          rsync -avz --delete -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='vendor' \
+            --exclude='bootstrap/cache/*.php' \
+            --exclude='storage/logs/*.log' \
+            --exclude='storage/framework/cache/data/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/prod/itcc-website-backend/
+
+      # 5️⃣ Create .env directly on VPS
+      - name: Create .env on VPS
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
+            cd /var/www/prod/itcc-website-backend && \
+            echo 'APP_NAME=\"IT Cloud Consultings\"' > .env && \
+            echo 'APP_ENV=production' >> .env && \
+            echo 'APP_DEBUG=false' >> .env && \
+            echo 'APP_KEY=\"${{ secrets.ITCC_API_APP_KEY }}\"' >> .env && \
+            echo 'APP_URL=\"${{ secrets.ITCC_API_APP_URL }}\"' >> .env && \
+            echo 'LOG_CHANNEL=stack' >> .env && \
+            echo 'LOG_DEPRECATIONS_CHANNEL=null' >> .env && \
+            echo 'LOG_LEVEL=error' >> .env && \
+            echo 'DB_CONNECTION=mysql' >> .env && \
+            echo 'DB_HOST=\"${{ secrets.ITCC_API_DB_HOST }}\"' >> .env && \
+            echo 'DB_PORT=\"${{ secrets.ITCC_API_DB_PORT }}\"' >> .env && \
+            echo 'DB_DATABASE=\"${{ secrets.ITCC_API_DB_DATABASE }}\"' >> .env && \
+            echo 'DB_USERNAME=\"${{ secrets.ITCC_API_DB_USERNAME }}\"' >> .env && \
+            echo 'DB_PASSWORD=\"${{ secrets.ITCC_API_DB_PASSWORD }}\"' >> .env && \
+            echo 'BROADCAST_DRIVER=log' >> .env && \
+            echo 'CACHE_DRIVER=redis' >> .env && \
+            echo 'FILESYSTEM_DISK=local' >> .env && \
+            echo 'QUEUE_CONNECTION=sync' >> .env && \
+            echo 'SESSION_DRIVER=redis' >> .env && \
+            echo 'SESSION_LIFETIME=120' >> .env && \
+            echo 'REDIS_HOST=\"${{ secrets.ITCC_API_REDIS_HOST }}\"' >> .env && \
+            echo 'REDIS_PASSWORD=\"${{ secrets.ITCC_API_REDIS_PASSWORD }}\"' >> .env && \
+            echo 'REDIS_PORT=\"${{ secrets.ITCC_API_REDIS_PORT }}\"' >> .env && \
+            echo 'MAIL_MAILER=smtp' >> .env && \
+            echo 'MAIL_HOST=\"${{ secrets.ITCC_API_MAIL_HOST }}\"' >> .env && \
+            echo 'MAIL_PORT=\"${{ secrets.ITCC_API_MAIL_PORT }}\"' >> .env && \
+            echo 'MAIL_USERNAME=\"${{ secrets.ITCC_API_MAIL_USERNAME }}\"' >> .env && \
+            echo 'MAIL_PASSWORD=\"${{ secrets.ITCC_API_MAIL_PASSWORD }}\"' >> .env && \
+            echo 'MAIL_ENCRYPTION=\"${{ secrets.ITCC_API_MAIL_ENCRYPTION }}\"' >> .env && \
+            echo 'MAIL_FROM_ADDRESS=\"${{ secrets.ITCC_API_MAIL_FROM_ADDRESS }}\"' >> .env && \
+            echo 'MAIL_FROM_NAME=\"${{ secrets.ITCC_API_MAIL_FROM_NAME }}\"' >> .env && \
+            echo 'ADMIN_EMAIL=\"${{ secrets.ITCC_API_ADMIN_EMAIL }}\"' >> .env \
+          "
+
+      # 6️⃣ Install Composer dependencies
+      - name: Install Composer dependencies
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
+            cd /var/www/prod/itcc-website-backend && \
+            composer install --no-dev --optimize-autoloader --no-interaction \
+          "
+
+      # 7️⃣ Set proper permissions
+      - name: Set permissions
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
+            cd /var/www/prod/itcc-website-backend && \
+            sudo chown -R www-data:www-data . && \
+            sudo chmod -R 755 . && \
+            sudo chmod -R 775 storage bootstrap/cache && \
+            sudo chmod 600 .env \
+          "
+
+      # 8️⃣ Laravel deployment commands
+      - name: Deploy Laravel application
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
+            cd /var/www/prod/itcc-website-backend && \
+            php artisan down --retry=60 --render='errors::503' && \
+            php artisan migrate --force && \
+            php artisan config:cache && \
+            php artisan route:cache && \
+            php artisan view:cache && \
+            php artisan event:cache && \
+            php artisan storage:link && \
+            php artisan queue:restart && \
+            php artisan up && \
+            echo 'Laravel application deployed successfully!' \
+          "
+
+      # 9️⃣ Health check
+      - name: Health check
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
+            curl -f http://localhost/health || curl -f http://localhost/ && \
+            echo 'Health check passed!' \
+          "
