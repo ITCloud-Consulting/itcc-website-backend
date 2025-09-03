@@ -1,66 +1,253 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# IT Cloud Consulting - Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Ce projet est l'API backend pour le site IT Cloud Consulting, développé avec Laravel 10. Il gère les soumissions de formulaire de contact et l'envoi d'emails.
 
-## About Laravel
+## Prérequis
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Docker et Docker Compose
+- Git
+- Un client HTTP comme Postman ou cURL pour tester les endpoints
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Installation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. **Cloner le dépôt**
+   ```bash
+   git clone [URL_DU_REPO]
+   cd companyBackend
+   ```
 
-## Learning Laravel
+2. **Copier le fichier d'environnement**
+   ```bash
+   cp .env.example .env
+   ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+3. **Générer une clé d'application**
+   ```bash
+   docker-compose run --rm app php artisan key:generate
+   ```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+4. **Configurer l'environnement**
+   Éditez le fichier `.env` avec vos paramètres :
+   ```env
+   APP_NAME="IT Cloud Consulting"
+   APP_ENV=local
+   APP_DEBUG=true
+   APP_URL=http://localhost:8000
+   
+   DB_CONNECTION=mysql
+   DB_HOST=db
+   DB_PORT=3306
+   DB_DATABASE=company
+   DB_USERNAME=company
+   DB_PASSWORD=secret
+   
+   MAIL_MAILER=smtp
+   MAIL_HOST=smtp.hostinger.com
+   MAIL_PORT=465
+   MAIL_USERNAME=support@itcloudconsultings.com
+   MAIL_PASSWORD=votre_mot_de_passe
+   MAIL_ENCRYPTION=ssl
+   MAIL_FROM_ADDRESS=support@itcloudconsultings.com
+   MAIL_FROM_NAME="IT Cloud Consulting"
+   ```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+5. **Démarrer les conteneurs Docker**
+   ```bash
+   docker-compose up -d
+   ```
 
-## Laravel Sponsors
+6. **Installer les dépendances**
+   ```bash
+   docker-compose exec app composer install
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+7. **Exécuter les migrations**
+   ```bash
+   docker-compose exec app php artisan migrate
+   ```
 
-### Premium Partners
+## Démarrage
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+1. **Démarrer les services**
+   ```bash
+   # Si ce n'est pas déjà fait
+   docker-compose up -d
+   
+   # Démarrer le worker pour les files d'attente
+   docker-compose exec app php artisan queue:work --daemon
+   ```
 
-## Contributing
+2. **Accéder à l'application**
+   - API : http://localhost:8000/api
+   - Documentation : http://localhost:8000/api/documentation (si configurée)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Utilisation
 
-## Code of Conduct
+### Soumettre un formulaire de contact
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**Endpoint** : `POST /api/v1/contact`
 
-## Security Vulnerabilities
+**Corps de la requête** :
+```json
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "subject": "Demande d'information",
+    "message": "Bonjour, j'aimerais plus d'informations sur vos services."
+}
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**Réponse en cas de succès (201)** :
+```json
+{
+    "success": true,
+    "message": "Votre message a été envoyé avec succès. Nous vous répondrons bientôt!",
+    "data": {
+        "id": 1,
+        "submitted_at": "2025-08-28T13:45:00.000000Z"
+    }
+}
+```
 
-## License
+## Configuration des emails
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Le projet est configuré pour envoyer deux types d'emails :
+1. Un accusé de réception automatique au visiteur
+2. Une notification à l'équipe de support
+
+### Configuration SMTP
+Assurez-vous que les paramètres SMTP dans le fichier `.env` sont correctement configurés :
+- `MAIL_MAILER=smtp`
+- `MAIL_HOST=votre_hote_smtp`
+- `MAIL_PORT=465`
+- `MAIL_USERNAME=votre_email`
+- `MAIL_PASSWORD=votre_mot_de_passe`
+- `MAIL_ENCRYPTION=ssl`
+
+## Tests
+
+### Exécution des tests
+
+Pour exécuter tous les tests :
+
+```bash
+docker-compose exec app php artisan test
+```
+
+### Tests d'emails
+
+Le projet inclut des tests pour vérifier l'envoi des emails. Les tests couvrent :
+
+1. **Email de réponse automatique**
+   - Vérifie que l'email de confirmation est envoyé au visiteur
+   - Vérifie le contenu et le destinataire de l'email
+
+2. **Email de notification**
+   - Vérifie que la notification est envoyée à l'équipe de support
+   - Vérifie le contenu et le destinataire de l'email
+
+3. **Commande de diagnostic**
+   - Vérifie la configuration SMTP
+   - Détecte les erreurs de configuration
+   - Affiche un rapport de diagnostic
+
+#### Exécution des tests d'emails
+
+Pour exécuter uniquement les tests d'emails :
+
+```bash
+docker-compose exec app php artisan test tests/Feature/MailSendingTest.php
+```
+
+Pour exécuter le test de diagnostic de configuration email :
+
+```bash
+docker-compose exec app php artisan test tests/Feature/Commands/MailDiagnosticCommandTest.php
+```
+
+#### Vérification de la configuration email
+
+Le projet inclut une commande pour diagnostiquer la configuration email :
+
+```bash
+docker-compose exec app php artisan mail:diagnostic
+```
+
+Cette commande affiche :
+- La configuration actuelle du service email
+- Les vérifications de configuration
+- Les problèmes potentiels
+- Des suggestions de résolution
+
+## Maintenance
+
+### Commandes de base
+
+#### Arrêter les conteneurs
+```bash
+docker-compose down
+```
+
+#### Voir les logs
+```bash
+docker-compose logs -f
+```
+
+### Commandes de base de données
+
+#### Exécuter les migrations
+```bash
+docker-compose exec app php artisan migrate
+```
+
+#### Annuler la dernière migration
+```bash
+docker-compose exec app php artisan migrate:rollback
+```
+
+#### Recréer toute la base de données (attention: supprime les données existantes)
+```bash
+docker-compose exec app php artisan migrate:fresh
+```
+
+#### Générer une migration
+```bash
+docker-compose exec app php artisan make:migration nom_de_la_migration
+```
+
+### Commandes de test
+
+#### Lancer tous les tests
+```bash
+docker-compose exec app php artisan test
+```
+
+#### Lancer les tests avec couverture de code
+```bash
+docker-compose exec app php artisan test --coverage
+```
+
+#### Lancer un fichier de test spécifique
+```bash
+docker-compose exec app php artisan test tests/Feature/ContactControllerTest.php
+```
+
+#### Lancer une méthode de test spécifique
+```bash
+docker-compose exec app php artisan test --filter=test_can_create_contact
+```
+
+#### Générer un test
+```bash
+docker-compose exec app php artisan make:test NomDuTest
+```
+
+## Sécurité
+
+- Ne jamais commiter le fichier `.env` avec des informations sensibles
+- Utiliser toujours des connexions sécurisées (HTTPS) en production
+- Mettre à jour régulièrement les dépendances
+
+## Licence
+
+[À spécifier]

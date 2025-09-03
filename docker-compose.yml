@@ -31,6 +31,21 @@ services:
     command: >
       sh -c "php-fpm"
 
+  # Worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_worker
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - app
+      - db
+    networks:
+      - company-network
   # Nginx Service
   webserver:
     image: nginx:alpine
