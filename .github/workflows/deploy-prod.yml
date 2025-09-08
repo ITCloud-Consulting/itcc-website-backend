@@ -63,7 +63,7 @@ jobs:
             echo 'DB_USERNAME=\"${{ secrets.ITCC_API_DB_USERNAME }}\"' >> .env && \
             echo 'DB_PASSWORD=\"${{ secrets.ITCC_API_DB_PASSWORD }}\"' >> .env && \
             echo 'BROADCAST_DRIVER=log' >> .env && \
-            echo 'CACHE_DRIVER=redis' >> .env && \
+            echo 'CACHE_DRIVER=database' >> .env && \
             echo 'FILESYSTEM_DISK=local' >> .env && \
             echo 'QUEUE_CONNECTION=database' >> .env && \
             echo 'SESSION_DRIVER=database' >> .env && \
