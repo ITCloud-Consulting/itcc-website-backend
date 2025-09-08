@@ -64,11 +64,13 @@ jobs:
             echo 'DB_PASSWORD=\"${{ secrets.ITCC_API_DB_PASSWORD }}\"' >> .env && \
             echo 'BROADCAST_DRIVER=log' >> .env && \
             echo 'CACHE_DRIVER=database' >> .env && \
+            echo 'CACHE_STORE=database' >> .env && \
             echo 'FILESYSTEM_DISK=local' >> .env && \
             echo 'QUEUE_CONNECTION=database' >> .env && \
             echo 'SESSION_DRIVER=database' >> .env && \
             echo 'SESSION_LIFETIME=120' >> .env && \
             echo 'REDIS_HOST=\"${{ secrets.ITCC_API_REDIS_HOST }}\"' >> .env && \
+            echo 'MEMCACHED_HOST=\"${{ secrets.ITCC_API_REDIS_HOST }}\"'
             echo 'REDIS_PASSWORD=\"${{ secrets.ITCC_API_REDIS_PASSWORD }}\"' >> .env && \
             echo 'REDIS_PORT=\"${{ secrets.ITCC_API_REDIS_PORT }}\"' >> .env && \
             echo 'MAIL_MAILER=smtp' >> .env && \
