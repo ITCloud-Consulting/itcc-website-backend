@@ -32,12 +32,17 @@ class SendContactNotification implements ShouldQueue
         //
         try {
             //code...
-            $adminEmail = config('mail.admin_email', 'support@itcloudconsultings.com');
+            $adminEmail = 'support@itcloudconsultings.com';
             Mail::to($adminEmail)
                 ->send(new ContactNotification($event->contact));
             $event->contact->update([
                 'status' => 'processed'
             ]);
+            Log::info('Contact notification sent successfully: ', [
+                'contact_id' => $event->contact->id,
+                'admin_email' => $adminEmail,
+                'message' => $event->contact->message
+            ]); 
         } catch (\Exception $e) {
             Log::error('Contact notification failed: ', [
                 'contact_id' => $event->contact->id,

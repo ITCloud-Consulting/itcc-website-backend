@@ -14,6 +14,13 @@ class TestEmail extends Command
     public function handle(): int
     {
         $email = $this->argument('email') ?: config('mail.admin_email');
+
+        if (empty($email)) {
+            $this->error("❌ Aucun email de destination fourni.");
+            $this->line("💡 Utilisation: php artisan mail:test user@example.com");
+            $this->line("   ou définissez ADMIN_EMAIL dans votre fichier .env");
+            return self::FAILURE;
+        }
         
         $this->info("🧪 Test d'envoi d'email vers : {$email}");
         $this->info("📡 Serveur SMTP : " . config('mail.mailers.smtp.host'));

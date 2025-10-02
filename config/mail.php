@@ -114,4 +114,7 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    // Default admin email used by diagnostics and test commands
+    'admin_email' => env('ADMIN_EMAIL'),
+
 ];
