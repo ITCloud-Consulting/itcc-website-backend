@@ -1,8 +1,8 @@
-name: Deploy to Production
+name: Deploy to Staging
 
 on:
   push:
-    branches: ["prod"]
+    branches: ["staging"]
   workflow_dispatch:
 
 jobs:
@@ -40,19 +40,19 @@ jobs:
             --exclude='storage/framework/cache/data/*' \
             --exclude='storage/framework/sessions/*' \
             --exclude='storage/framework/views/*' \
-            ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/prod/itcc-website-backend/
+            ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/staging/itcc-website-backend/
 
       # 5️⃣ Copy .env to the working directory
       - name: Copy .env on VPS
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
-            cp /var/www/env/.env.itcc.prod /var/www/prod/itcc-website-backend/.env
+            cp /var/www/env/.env.itcc.staging /var/www/staging/itcc-website-backend/.env
 
       # 6️⃣ Install Composer dependencies
       - name: Install Composer dependencies
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
-            cd /var/www/prod/itcc-website-backend && \
+            cd /var/www/staging/itcc-website-backend && \
             composer install --no-dev --optimize-autoloader --no-interaction \
           "
 
@@ -60,7 +60,7 @@ jobs:
       - name: Set permissions
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
-            cd /var/www/prod/itcc-website-backend && \
+            cd /var/www/staging/itcc-website-backend && \
             sudo chown -R www-data:www-data . && \
             sudo chmod -R 755 . && \
             sudo chmod -R 775 storage bootstrap/cache && \
@@ -71,7 +71,7 @@ jobs:
       - name: Deploy Laravel application
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
-            cd /var/www/prod/itcc-website-backend && \
+            cd /var/www/staging/itcc-website-backend && \
             php artisan down --retry=60 --render='errors::503' && \
             php artisan migrate --force && \
             php artisan config:cache && \
