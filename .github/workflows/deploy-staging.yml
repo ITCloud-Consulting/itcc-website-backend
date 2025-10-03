@@ -47,6 +47,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
             cp /var/www/env/.env.itcc.staging /var/www/staging/itcc-website-backend/.env
+          "
 
       # 6️⃣ Install Composer dependencies
       - name: Install Composer dependencies
