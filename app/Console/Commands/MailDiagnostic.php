@@ -13,7 +13,7 @@ class MailDiagnostic extends Command
 
     public function handle(): int
     {
-        $this->info("🔍 DIAGNOSTIC EMAIL HOSTINGER");
+        $this->info("🔍 DIAGNOSTIC EMAIL GMAIL");
         $this->line("");
         
         // Configuration actuelle
@@ -37,7 +37,7 @@ class MailDiagnostic extends Command
         $checks = [
             'Username configuré' => !empty(config('mail.mailers.smtp.username')),
             'Password configuré' => !empty(config('mail.mailers.smtp.password')),
-            'Host correct' => config('mail.mailers.smtp.host') === 'smtp.hostinger.com',
+            'Host correct' => config('mail.mailers.smtp.host') === 'smtp.gmail.com',
             'Port valide' => in_array(config('mail.mailers.smtp.port'), [587, 465]),
             'Encryption configurée' => in_array(config('mail.mailers.smtp.encryption'), ['tls', 'ssl']),
             'From address configurée' => !empty(config('mail.from.address')),
@@ -52,7 +52,7 @@ class MailDiagnostic extends Command
         
         // Recommandations
         if (!$checks['Host correct']) {
-            $this->warn("⚠️  Host incorrect. Utilisez : smtp.hostinger.com");
+            $this->warn("⚠️  Host incorrect. Utilisez : smtp.gmail.com");
         }
         
         if (!in_array(config('mail.mailers.smtp.port'), [587, 465])) {

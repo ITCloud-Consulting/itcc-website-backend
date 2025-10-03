@@ -41,7 +41,7 @@ return [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),
             'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'host' => env('MAIL_HOST', 'smtp.gmail.com'),
             'port' => env('MAIL_PORT', 465),
             'username' => env('MAIL_USERNAME', 'support@itcloudconsultings.com'),
             'password' => env('MAIL_PASSWORD', 'Jesussavior!22@'),
@@ -113,5 +113,8 @@ return [
         'address' => env('MAIL_FROM_ADDRESS', 'support@itcloudconsultings.com'),
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
+
+    // Default admin email used by diagnostics and test commands
+    'admin_email' => env('ADMIN_EMAIL'),
 
 ];

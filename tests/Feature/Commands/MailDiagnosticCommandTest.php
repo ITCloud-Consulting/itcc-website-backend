@@ -14,7 +14,7 @@ class MailDiagnosticCommandTest extends TestCase
         Config::set('mail.default', 'smtp');
         Config::set('mail.mailers.smtp', [
             'transport' => 'smtp',
-            'host' => 'smtp.hostinger.com',
+            'host' => 'smtp.gmail.com',
             'port' => 465,
             'encryption' => 'ssl',
             'username' => 'test@example.com',
@@ -31,7 +31,7 @@ class MailDiagnosticCommandTest extends TestCase
         // Exécuter la commande
         $this->artisan('mail:diagnostic')
             ->assertExitCode(0)
-            ->expectsOutputToContain('DIAGNOSTIC EMAIL HOSTINGER')
+            ->expectsOutputToContain('DIAGNOSTIC EMAIL GMAIL')
             ->expectsOutputToContain('CONFIGURATION ACTUELLE')
             ->expectsOutputToContain('VÉRIFICATIONS');
     }
