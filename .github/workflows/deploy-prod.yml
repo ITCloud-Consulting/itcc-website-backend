@@ -74,6 +74,7 @@ jobs:
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
             cd /var/www/prod/itcc-website-backend && \
             php artisan down --retry=60 --render='errors::503' && \
+            php artisan key:generate && \
             php artisan migrate --force && \
             php artisan config:cache && \
             php artisan route:cache && \
