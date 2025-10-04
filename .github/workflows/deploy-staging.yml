@@ -90,6 +90,6 @@ jobs:
       - name: Health check
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
-            curl -fk https://localhost/health || curl -fk https://localhost/ && \
+            curl http://127.0.0.1/api/health && \
             echo 'Health check passed!' \
           "
